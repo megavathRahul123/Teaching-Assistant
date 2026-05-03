@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAid — Open Book Exam Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg: #0d0f0e;
+            --surface: #141614;
+            --surface2: #1c1f1c;
+            --surface3: #232623;
+            --border: rgba(255, 255, 255, 0.07);
+            --border2: rgba(255, 255, 255, 0.13);
+            --text: #f0f2ef;
+            --text2: #8a9088;
+            --text3: #5a5e58;
+            --accent: #b8f07a;
+            --accent-dim: rgba(184, 240, 122, 0.12);
+            --accent-text: #2d4a0f;
+            --red: #f07a7a;
+            --red-dim: rgba(240, 122, 122, 0.12);
+            --blue: #7ab8f0;
+            --blue-dim: rgba(122, 184, 240, 0.12);
+            --amber: #f0c87a;
+            --amber-dim: rgba(240, 200, 122, 0.1);
+            --radius: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 22px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* ── NAVBAR ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(13, 15, 14, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-brand-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 100px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(184, 240, 122, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        /* ── PAGE LAYOUT ── */
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* ── SECTION LABELS ── */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: var(--text3);
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── WEBHOOK ROW ── */
+        .webhook-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .webhook-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .webhook-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 0 16px;
+            transition: border-color 0.2s;
+        }
+
+        .webhook-field:focus-within {
+            border-color: rgba(184, 240, 122, 0.35);
+        }
+
+        .webhook-field label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .webhook-field input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            color: var(--text2);
+            padding: 14px 0;
+        }
+
+        .webhook-field input::placeholder {
+            color: var(--text3);
+        }
+
+        .webhook-field input:focus {
+            color: var(--text);
+        }
+
+        .ws-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text3);
+            flex-shrink: 0;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .ws-dot.ok {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        .ws-dot.err {
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
+        }
+
+        /* ── PAPER SECTION ── */
+        .paper-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .paper-zone {
+            border: 1.5px dashed var(--border2);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+            background: var(--surface);
+        }
+
+        .paper-zone:hover {
+            border-color: rgba(184, 240, 122, 0.3);
+            background: var(--surface2);
+        }
+
+        .paper-zone.drag-over {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .paper-zone input[type=file] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            background: var(--surface3);
+            border: 1px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 24px;
+        }
+
+        .upload-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .upload-sub {
+            font-size: 13px;
+            color: var(--text3);
+        }
+
+        .upload-sub strong {
+            color: var(--text2);
+            font-weight: 500;
+        }
+
+        /* images strip */
+        .images-strip {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 1.25rem;
+        }
+
+        .img-thumb {
+            position: relative;
+            width: 120px;
+            height: 90px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border2);
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+
+        .img-thumb:hover {
+            border-color: var(--border2);
+            transform: scale(1.02);
+        }
+
+        .img-thumb.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(184, 240, 122, 0.25);
+        }
+
+        .img-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .img-thumb-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .img-thumb:hover .img-thumb-remove {
+            opacity: 1;
+        }
+
+        .img-thumb-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 3px 6px;
+            text-align: center;
+        }
+
+        /* full preview */
+        .full-preview {
+            margin-top: 1.25rem;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: none;
+        }
+
+        .full-preview.visible {
+            display: block;
+        }
+
+        .full-preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .full-preview-header span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .full-preview img {
+            width: 100%;
+            max-height: 520px;
+            object-fit: contain;
+            display: block;
+            background: #111;
+        }
+
+        /* page nav */
+        .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .page-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border2);
+            background: var(--surface2);
+            color: var(--text2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .page-nav-btn:hover {
+            background: var(--surface3);
+            color: var(--text);
+        }
+
+        .page-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-counter {
+            font-size: 12px;
+            color: var(--text3);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* ── QUESTION SECTION ── */
+        .question-section {
+            margin-bottom: 2rem;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            background: var(--surface2);
+            border-radius: var(--radius);
+            padding: 4px;
+            width: fit-content;
+            border: 1px solid var(--border);
+        }
+
+        .mode-btn {
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .mode-btn.active {
+            background: var(--surface3);
+            color: var(--text);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        /* select mode */
+        .select-mode-wrap {}
+
+        .qnum-config {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 1.25rem;
+        }
+
+        .qnum-config label {
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .qnum-config input[type=number] {
+            width: 70px;
+            padding: 6px 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.15s;
+        }
+
+        .qnum-config input[type=number]:focus {
+            border-color: rgba(184, 240, 122, 0.4);
+        }
+
+        .clear-sel-btn {
+            font-size: 11px;
+            color: var(--text3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .clear-sel-btn:hover {
+            color: var(--text2);
+        }
+
+        .q-grid {
+            display: grid;
+            gap: 7px;
+            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+            margin-bottom: 1rem;
+        }
+
+        .q-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface2);
+            color: var(--text3);
+            cursor: pointer;
+            transition: all 0.12s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .q-btn:hover {
+            border-color: var(--border2);
+            color: var(--text);
+            background: var(--surface3);
+        }
+
+        .q-btn.sel {
+            background: var(--accent-dim);
+            border-color: rgba(184, 240, 122, 0.4);
+            color: var(--accent);
+        }
+
+        .selected-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 28px;
+            margin-bottom: 1rem;
+        }
+
+        .pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(184, 240, 122, 0.2);
+            border-radius: 100px;
+            letter-spacing: 0.2px;
+        }
+
+        /* type mode */
+        .type-mode-wrap textarea {
+            width: 100%;
+            height: 130px;
+            resize: vertical;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .type-mode-wrap textarea:focus {
+            border-color: rgba(184, 240, 122, 0.4);
+        }
+
+        .type-mode-wrap textarea::placeholder {
+            color: var(--text3);
+        }
+
+        /* ── SEND BUTTON ── */
+        .send-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .send-btn {
+            flex: 1;
+            padding: 14px 24px;
+            background: var(--accent);
+            color: var(--accent-text);
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .send-btn:hover {
+            opacity: 0.88;
+        }
+
+        .send-btn:active {
+            transform: scale(0.98);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .send-hint {
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        /* ── RESPONSE ── */
+        .response-section {
+            display: none;
+        }
+
+        .response-section.visible {
+            display: block;
+        }
+
+        .response-card {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .response-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .response-head-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .response-head-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .res-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 100px;
+            letter-spacing: 0.3px;
+        }
+
+        .res-badge.loading {
+            background: var(--blue-dim);
+            color: var(--blue);
+            border: 1px solid rgba(122, 184, 240, 0.2);
+        }
+
+        .res-badge.ok {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid rgba(184, 240, 122, 0.2);
+        }
+
+        .res-badge.err {
+            background: var(--red-dim);
+            color: var(--red);
+            border: 1px solid rgba(240, 122, 122, 0.2);
+        }
+
+        .response-meta {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .response-body {
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text2);
+            min-height: 80px;
+            overflow-wrap: break-word;
+        }
+
+        .response-body p { margin-bottom: 1.2em; }
+        .response-body p:last-child { margin-bottom: 0; }
+        .response-body h1, .response-body h2, .response-body h3, .response-body h4 { color: var(--text); margin: 1.5em 0 0.5em; font-weight: 500; font-family: 'DM Serif Display', serif; }
+        .response-body ul, .response-body ol { margin-left: 20px; margin-bottom: 1.2em; }
+        .response-body li { margin-bottom: 0.5em; }
+        .response-body strong { color: var(--text); font-weight: 600; }
+        .response-body em { font-style: italic; }
+
+        .response-body.err-text {
+            color: var(--red);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .dots {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .dots span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--blue);
+            animation: pulse 1.3s infinite;
+        }
+
+        .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.25;
+                transform: scale(0.75)
+            }
+
+            40% {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        /* ── HISTORY ── */
+        .history-section {
+            margin-top: 3rem;
+            display: none;
+        }
+
+        .history-section.visible {
+            display: block;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 0.75rem;
+        }
+
+        .history-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .history-item:hover {
+            border-color: var(--border2);
+            background: var(--surface2);
+        }
+
+        .history-q {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-time {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+        }
+
+        .history-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 100px;
+            flex-shrink: 0;
+        }
+
+        .history-badge.ok {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .history-badge.err {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        /* ── UTILS ── */
+        input[type=number]::-webkit-inner-spin-button {
+            opacity: 0.5;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface3);
+            border-radius: 3px;
+        }
+
+        /* divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 2.5rem 0;
+        }
+
+        /* fade in animation */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .fade-in {
+            animation: fadeUp 0.4s ease forwards;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="nav-brand">
+            <div class="nav-brand-dot"></div>
+            ExamAid
+        </div>
+        <div class="nav-right">
+            <div class="nav-badge">Open Book</div>
+        </div>
+    </nav>
+
+    <div class="page">
+
+        <!-- WEBHOOK -->
+        <div class="webhook-section" style="display: none;">
+            <div class="section-label">Webhook</div>
+            <div class="webhook-row">
+                <div class="webhook-field">
+                    <label>n8n URL</label>
+                    <!-- Hardcode your webhook URL in the value attribute below if needed -->
+                    <input type="text" id="webhookUrl" value="http://localhost:5678/webhook/1fb0a811-26af-4c6f-8804-5ae7c3156a21" placeholder="http://localhost:5678/webhook/1fb0a811-26af-4c6f-8804-5ae7c3156a21"
+                        autocomplete="off" spellcheck="false" />
+                    <div class="ws-dot" id="wsDot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUESTION PAPER IMAGES -->
+        <div class="paper-section">
+            <div class="section-label">Question Paper</div>
+
+            <a href="https://drive.google.com/file/d/1cgX5262aic8uUrTW_cLZAhzWI27l_o1Y/view?usp=sharing" target="_blank"
+                style="display: block; text-decoration: none; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 16px; text-align: center; transition: background 0.2s;">
+                <img src="./images/assignment.png" alt="Question Paper"
+                    style="max-width: 100%; max-height: 400px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.25);">
+                <div style="color: var(--text); font-weight: 500; font-family: 'DM Sans', sans-serif;">📄 Open Question
+                    Paper</div>
+                <div style="color: var(--text3); font-size: 13px; margin-top: 6px; font-family: 'DM Sans', sans-serif;">
+                    Click the image to view the full question paper in Google Drive</div>
+            </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- QUESTION INPUT -->
+        <div class="question-section">
+            <div class="section-label">Your Question</div>
+
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="btnSelect" onclick="switchMode('select')">Select Question
+                    Number</button>
+                <button class="mode-btn" id="btnType" onclick="switchMode('type')">Type Question</button>
+            </div>
+
+            <!-- SELECT MODE -->
+            <div class="select-mode-wrap" id="selectMode">
+                <div class="qnum-config">
+                    <label>Total questions in paper:</label>
+                    <input type="number" id="qCount" value="6" min="1" max="100" onchange="renderGrid()" />
+                    <button class="clear-sel-btn" onclick="clearAll()">Clear selection</button>
+                </div>
+                <div class="q-grid" id="qGrid"></div>
+                <div class="selected-pills" id="pillsRow"></div>
+            </div>
+
+            <!-- TYPE MODE -->
+            <div class="type-mode-wrap" id="typeMode" style="display:none">
+                <textarea id="questionText"
+                    placeholder="e.g. What is the difference between RAM and ROM? Explain with examples."></textarea>
+            </div>
+
+            <div class="send-row">
+                <button class="send-btn" id="sendBtn" onclick="sendQuestion()">
+                    <span>Send to n8n</span>
+                    <span>&#8594;</span>
+                </button>
+                <div class="send-hint" id="sendHint">Configure webhook &amp; add a question</div>
+            </div>
+        </div>
+
+        <!-- RESPONSE -->
+        <div class="response-section" id="responseSection">
+            <div class="section-label">Answer</div>
+            <div class="response-card fade-in">
+                <div class="response-head">
+                    <div class="response-head-left">
+                        <span class="response-head-title" id="responseTitle">Waiting for response</span>
+                        <span class="res-badge loading" id="resBadge">Fetching...</span>
+                    </div>
+                    <span class="response-meta" id="resMeta"></span>
+                </div>
+                <div class="response-body" id="responseBody">
+                    <div class="dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="history-section" id="historySection">
+            <div class="section-label">History</div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ── State
+        let selectedQs = new Set();
+        let mode = 'select';
+        let history = [];
+
+        // ── Webhook validation
+        const webhookInput = document.getElementById('webhookUrl');
+        const wsDot = document.getElementById('wsDot');
+        webhookInput.addEventListener('input', () => {
+            const v = webhookInput.value.trim();
+            if (!v) { wsDot.className = 'ws-dot'; return; }
+            try { new URL(v); wsDot.className = 'ws-dot ok'; } catch { wsDot.className = 'ws-dot err'; }
+        });
+
+        // ── Mode toggle
+        function switchMode(m) {
+            mode = m;
+            document.getElementById('btnSelect').classList.toggle('active', m === 'select');
+            document.getElementById('btnType').classList.toggle('active', m === 'type');
+            document.getElementById('selectMode').style.display = m === 'select' ? 'block' : 'none';
+            document.getElementById('typeMode').style.display = m === 'type' ? 'block' : 'none';
+        }
+
+        // ── Q grid
+        function renderGrid() {
+            const count = parseInt(document.getElementById('qCount').value) || 20;
+            const grid = document.getElementById('qGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= count; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'q-btn' + (selectedQs.has(i) ? ' sel' : '');
+                btn.textContent = i;
+                btn.onclick = () => toggleQ(i, btn);
+                grid.appendChild(btn);
+            }
+            updatePills();
+        }
+
+        function toggleQ(n, btn) {
+            if (selectedQs.has(n)) { selectedQs.delete(n); btn.classList.remove('sel'); }
+            else { selectedQs.add(n); btn.classList.add('sel'); }
+            updatePills();
+        }
+
+        function clearAll() { selectedQs.clear(); renderGrid(); }
+
+        function updatePills() {
+            const row = document.getElementById('pillsRow');
+            row.innerHTML = '';
+            const sorted = [...selectedQs].sort((a, b) => a - b);
+            sorted.forEach(n => {
+                const p = document.createElement('div');
+                p.className = 'pill'; p.textContent = `Q${n}`;
+                row.appendChild(p);
+            });
+            if (sorted.length === 0) {
+                row.innerHTML = '<span style="font-size:12px;color:var(--text3)">No questions selected yet</span>';
+            }
+        }
+
+        // ── Image Helper
+        function getBase64FromUrl(url) {
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        // ── Send
+        async function sendQuestion() {
+            const url = webhookInput.value.trim() || "http://localhost:5678/webhook/1fb0a811-26af-4c6f-8804-5ae7c3156a21";
+            if (!url) { alert('Please enter your n8n webhook URL.'); return; }
+
+            let questionText = '';
+            if (mode === 'select') {
+                if (selectedQs.size === 0) { alert('Please select at least one question number.'); return; }
+                const sorted = [...selectedQs].sort((a, b) => a - b);
+                questionText = sorted.map(n => `Question ${n}`).join(', ');
+            } else {
+                questionText = document.getElementById('questionText').value.trim();
+                if (!questionText) { alert('Please type your question.'); return; }
+            }
+
+            // Show response section
+            const sec = document.getElementById('responseSection');
+            sec.classList.add('visible');
+            const body = document.getElementById('responseBody');
+            const badge = document.getElementById('resBadge');
+            const meta = document.getElementById('resMeta');
+            const title = document.getElementById('responseTitle');
+
+            body.className = 'response-body';
+            body.innerHTML = '<div class="dots"><span></span><span></span><span></span></div>';
+            badge.className = 'res-badge loading'; badge.textContent = 'Fetching...';
+            meta.textContent = '';
+            title.textContent = mode === 'select'
+                ? [...selectedQs].sort((a, b) => a - b).map(n => `Q${n}`).join(', ')
+                : questionText.slice(0, 50) + (questionText.length > 50 ? '…' : '');
+
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('sendHint').textContent = 'Sending to n8n...';
+            sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            let imgBase64 = null;
+            try {
+                // Fetch the local thumbnail to send as base64 to n8n
+                imgBase64 = await getBase64FromUrl('./images/assignment.png');
+            } catch (e) {
+                console.warn('Could not load local image for payload', e);
+            }
+
+            const payload = {
+                question: questionText,
+                mode: mode,
+                questionNumbers: mode === 'select' ? [...selectedQs].sort((a, b) => a - b) : [],
+                pages: imgBase64 ? [{ page: 1, name: 'assignment.png', image: imgBase64 }] : [],
+                pageCount: imgBase64 ? 1 : 0,
+                timestamp: new Date().toISOString()
+            };
+
+            const t0 = Date.now();
+            let success = false;
+            let resultText = '';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+                if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+
+                let raw;
+                try {
+                    const json = await res.json();
+                    resultText = json.answer || json.response || json.message || json.output || json.text || JSON.stringify(json, null, 2);
+                } catch {
+                    resultText = await res.text();
+                }
+
+                body.className = 'response-body';
+                let finalContent = resultText || '(Empty response from webhook)';
+                try { finalContent = marked.parse(finalContent); } catch (e) { }
+                body.innerHTML = finalContent;
+                if (window.MathJax) { MathJax.typesetPromise([body]).catch(err => console.error(err)); }
+                badge.className = 'res-badge ok'; badge.textContent = '✓ Done';
+                meta.textContent = `${elapsed}s`;
+                success = true;
+            } catch (err) {
+                resultText = err.message;
+                body.className = 'response-body err-text';
+                body.textContent = `Could not reach webhook.\n\n${err.message}\n\nTips:\n• Make sure the n8n webhook is active/listening\n• Verify the URL is correct\n• Enable CORS in n8n if running on a different origin`;
+                badge.className = 'res-badge err'; badge.textContent = '✗ Error';
+                meta.textContent = `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('sendHint').textContent = '';
+            }
+
+            // Add to history
+            history.unshift({ question: title.textContent, success, time: new Date().toLocaleTimeString(), answer: resultText });
+            renderHistory();
+        }
+
+        // ── History
+        function renderHistory() {
+            const sec = document.getElementById('historySection');
+            const list = document.getElementById('historyList');
+            sec.classList.toggle('visible', history.length > 0);
+            list.innerHTML = '';
+            history.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                el.innerHTML = `
+        <div class="history-q">${item.question}</div>
+        <span class="history-badge ${item.success ? 'ok' : 'err'}">${item.success ? '✓' : '✗'}</span>
+        <span class="history-time">${item.time}</span>
+      `;
+                el.onclick = () => {
+                    const body = document.getElementById('responseBody');
+                    let ans = item.answer || '';
+                    try { ans = marked.parse(ans); } catch (e) { }
+                    body.innerHTML = ans;
+                    if (window.MathJax) { MathJax.typesetPromise([body]).catch(err => console.error(err)); }
+                    document.getElementById('responseSection').classList.add('visible');
+                    document.getElementById('responseSection').scrollIntoView({ behavior: 'smooth' });
+                };
+                list.appendChild(el);
+            });
+        }
+
+        // ── Init
+        renderGrid();
+        updatePills();
+    </script>
+</body>
+
+</html>

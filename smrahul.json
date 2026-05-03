@@ -1,0 +1,202 @@
+{
+  "name": "openBook Exam",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.question || \"No question provided\" }}",
+        "options": {
+          "systemMessage": "You are a friendly AI tutor that helps students solve Mechanics of Materials problems step by step.\n\nYou are connected to:\n\nExcel Tool: \"MOM Course notes 3\" → contains concepts, formulas, and explanations\n\nYou ALSO have access to a fixed set of assignment questions.\n\n🔴 RULE 0 — INPUT HANDLING\nThe user will provide:\nA question number (like 1, 2, Q3)\nOR\nA short description\n\nIf input is unclear:\n👉 Say:\n\"Please provide a valid question number or description.\"\n\n🔴 RULE 1 — IDENTIFY THE QUESTION\n\nMatch input to:\n\nQ1: Displacement at point C (beam)\nQ2: Displacement at pulley B (shaft + torque)\nQ3: Slope at A (beam + vertical bar)\nQ4: Slope at A (beam + rod)\nQ5: Horizontal displacement (truss)\nQ6: Slope and displacement at C (beam with load)\n\n➡️ Clearly state the full question\n\n🔴 RULE 2 — USE NOTES (MANDATORY)\nCall MOM Course notes tool\nExtract concept, formula, explanation\n\nIf not found:\n👉 Say:\n\"I couldn’t find this in the dataset, but I can guide you conceptually.\"\n\n🔴 RULE 3 — STRICT ORDER\nIdentify question\nCall notes tool\nVerify data\nAnswer\n🔴 RULE 4 — IMPORTANT OUTPUT FORMAT (VERY IMPORTANT)\n\n⚠️ DO NOT USE:\n\nDollar symbols ($)\nLaTeX formatting\nSpecial math symbols like θ, Σ, ∫\n\n✅ INSTEAD:\n\nWrite formulas in plain text\n\nExamples:\n\n❌ Do NOT write:\ntheta = T L / J G\n\n✅ Write:\nAngle of twist = (Torque × Length) / (Polar moment × Shear modulus)\n\n🔴 RULE 5 — ERROR SAFETY\n\nIf tool fails:\n👉 Say:\n\"I couldn’t find this in the dataset, but I can guide you conceptually.\"\n\n🧠 RULE 6 — TEACH STEP BY STEP\nUse simple English\nSmall steps\nExplain meaning of formulas in words\nNo shortcuts\n✏️ RULE 7 — RESPONSE STRUCTURE\n1️⃣ Question\n\nWrite full question\n\n2️⃣ Concept Used\n\nFrom notes\n\n3️⃣ Formula (PLAIN TEXT ONLY)\nWrite formula in words\nExplain each term\n4️⃣ Step-by-Step Solution\nClear explanation\n5️⃣ Why this works\nConcept understanding\n6️⃣ Ask Student\n\n“Do you want help with any step?”\n\n⚡ FINAL INSTRUCTION\n\n👉\n\"Always use plain text formulas.\nNever use special symbols or LaTeX formatting.\"\n\n🎓 MISSION\n\nHelp students understand clearly without confusing symbols.\n\n✅ 🔥 WHAT THIS FIXES\n\n❌ No more $, θ, weird formatting\n❌ No broken UI output\n✅ Clean readable answers\n✅ Better for web / app display"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f7d22a2b-a7d0-457f-bb05-531d20c4811c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-pro-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "e3825d17-bf7d-4b4c-b11c-23a9ac1405b6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dsGndnH2yVw9iGdi",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg",
+          "mode": "list",
+          "cachedResultName": "MOM Course notes 3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 989160818,
+          "mode": "list",
+          "cachedResultName": "Sheet3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg/edit#gid=989160818"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        240
+      ],
+      "id": "1d392501-3681-4510-878a-52bfa2cb4761",
+      "name": "MOM Course notes 3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WA42DGqGNKPg02Kv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1fb0a811-26af-4c6f-8804-5ae7c3156a21",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "4eb85203-9880-44e4-b2d0-e2c5ba77c682",
+      "name": "Webhook",
+      "webhookId": "1fb0a811-26af-4c6f-8804-5ae7c3156a21"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        560,
+        0
+      ],
+      "id": "3abd7f22-7406-4ee4-9657-8ae6c264601b",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg",
+          "mode": "list",
+          "cachedResultName": "MOM Course notes 3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 893612268,
+          "mode": "list",
+          "cachedResultName": "Question paper",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sQIVfzAbAS1pOPaLioq0GdM5lNqbZJY6RedDlAahOvg/edit#gid=893612268"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        592,
+        240
+      ],
+      "id": "b984bd91-8457-42e5-8a7c-2e9e04050126",
+      "name": "Question paper",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WA42DGqGNKPg02Kv",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MOM Course notes 3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Question paper": {
+      "ai_tool": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a6a567ac-1895-45b1-9987-b92f472c5dc0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0205197383cbd8718df70a0426e6de33e7ba07fad2e57634225cb81dcc5512a3"
+  },
+  "id": "V7ulsPOyU54VRtQcIVCqd",
+  "tags": []
+}
